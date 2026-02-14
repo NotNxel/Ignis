@@ -93,7 +93,7 @@
     // --- Scene & Rendering ---
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 60; // Adjusted for larger Mahoraga form
+    camera.position.z = 55;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -105,7 +105,7 @@
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
     composer.addPass(bloomPass);
 
-    const COUNT = 30000; // Increased particle count for detail
+    const COUNT = 20000;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(COUNT * 3);
     const colors = new Float32Array(COUNT * 3);
@@ -119,32 +119,28 @@
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-    const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.35, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+    const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.3, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
     scene.add(particles);
-
-    // --- Global Mahoraga State Variables ---
-    let mahoragaTransitionTime = 0; // Tracks how long Mahoraga has been active
-    const COCOON_DURATION = 1.0; // Seconds for cocoon to form
-    const BREAKOUT_DURATION = 1.0; // Seconds for cocoon to explode and reveal Mahoraga
 
     // --- Technique Functions ---
     function getRed(i) {
-        const t = (i / COUNT);
-        const radius = 2 + (t * 40); 
-        const angle = t * 15 + ((i % 3) * (Math.PI * 2 / 3));
-        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random() - 0.5) * 10, r: 0.9, g: 0.1, b: 0.1, s: 1.2 };
+        if(i < COUNT * 0.1) {
+            const r = Math.random() * 9;
+            const theta = Math.random() * 6.28; const phi = Math.acos(2 * Math.random() - 1);
+            return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 3, g: 0.1, b: 0.1, s: 2.5 };
+        } else {
+            const armCount = 3; const t = (i / COUNT); 
+            const angle = t * 15 + ((i % armCount) * (Math.PI * 2 / armCount));
+            const radius = 2 + (t * 40); 
+            return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random() - 0.5) * (10 * t), r: 0.8, g: 0, b: 0, s: 1.0 };
+        }
     }
 
     function getBlue(i) {
         const t = i / COUNT;
         const angle = -t * 15;
         const radius = 3 + (t * 35);
-        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random()-0.5)*10, r: 0.1, g: 0.3, b: 1.0, s: 1.2 };
-    }
-
-    function getPurple(i) {
-        const r = 22; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
-        return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.5, g: 0.2, b: 0.9, s: 2.5 };
+        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random()-0.5)*10, r: 0.1, g: 0.4, b: 2.5, s: 1.2 };
     }
 
     function getVoid(i) {
@@ -157,6 +153,12 @@
             const phi = Math.acos(2 * Math.random() - 1);
             return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi), r: 0.1, g: 0.6, b: 1.0, s: 0.7 };
         }
+    }
+
+    function getPurple(i) {
+        if (Math.random() > 0.8) return { x: (Math.random() - 0.5) * 100, y: (Math.random() - 0.5) * 100, z: (Math.random() - 0.5) * 100, r: 0.5, g: 0.5, b: 0.7, s: 0.8 };
+        const r = 20; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
+        return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.6, g: 0.5, b: 1.0, s: 2.5 };
     }
 
     function getShrine(i) {
@@ -172,70 +174,30 @@
         } else return { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
     }
 
-    // NEW MAHORAGA TRANSITION LOGIC
-    function getMahoragaCocoon(i, progress) {
-        const radius = 5 + (20 * progress);
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        return { 
-            x: radius * Math.sin(phi) * Math.cos(theta), 
-            y: radius * Math.sin(phi) * Math.sin(theta), 
-            z: radius * Math.cos(phi), 
-            r: 0.4 + (1-progress)*0.6, g: 0.1, b: 0.1 + (1-progress)*0.4, s: 1.0 + progress * 2.0 
-        };
-    }
-
-    function getMahoragaForm(i) {
-        // Dot-dot UI Wheel
-        if (i < COUNT * 0.15) { 
-            const segment = Math.floor((i / (COUNT * 0.15)) * 8);
-            const angle = (segment * Math.PI * 2) / 8;
-            const radius = 25; // Size of the wheel
-            const r = 1.0 + Math.sin(angle * 2 + Date.now() * 0.005) * 0.2; // Pulsating color
-            return { x: radius * Math.cos(angle), y: radius * Math.sin(angle) + 40, z: -10, r: r, g: r * 0.8, b: r * 0.2, s: 4.0 };
-        } 
-        // Mahoraga Body (based on image)
-        else {
-            const t = Math.random();
-            let x, y, z;
-            let r_col = 0.8, g_col = 0.8, b_col = 0.7;
-            let s_size = 0.8;
-
-            // Head/Upper body
-            if (t < 0.2) { 
-                x = (Math.random() - 0.5) * 20; 
-                y = (t * 100) - 10; 
-                z = (Math.random() - 0.5) * 5; 
-                s_size = 1.0;
+    // --- NEW MAHORAGA LOGIC ---
+    function getMahoraga(i, timer) {
+        if (timer < 40) { // Cocoon Phase
+            const r = 6 + Math.sin(timer * 0.5) * 2;
+            const theta = Math.random() * 6.28;
+            return { x: r * Math.cos(theta), y: r * Math.sin(theta), z: (Math.random()-0.5)*5, r: 0.5, g: 0, b: 0.1, s: 1.5 };
+        } else { // General Appearance
+            if (i < COUNT * 0.15) { // The Wheel on Head
+                const angle = (i * 0.1) + (Date.now() * 0.003);
+                return { x: 8 * Math.cos(angle), y: 35, z: 8 * Math.sin(angle), r: 1, g: 0.8, b: 0.1, s: 3.0 };
+            } else if (i < COUNT * 0.3) { // Dot UI
+                const angle = Math.random() * 6.28;
+                return { x: 45 * Math.cos(angle), y: (Math.random()-0.5)*90, z: 45 * Math.sin(angle), r: 1, g: 1, b: 1, s: 1.0 };
+            } else { // Broad Silhouette
+                const t = Math.random();
+                return { x: (Math.random()-0.5) * (20 * (1-t)), y: (t*60)-25, z: (Math.random()-0.5)*15, r: 0.8, g: 0.8, b: 0.8, s: 0.8 };
             }
-            // Mid Body / Waist
-            else if (t < 0.5) { 
-                x = (Math.random() - 0.5) * 25; 
-                y = (t * 100) - 50; 
-                z = (Math.random() - 0.5) * 7; 
-            }
-            // Lower Body / Legs (implied by cloak)
-            else if (t < 0.8) { 
-                x = (Math.random() - 0.5) * 30; 
-                y = (t * 100) - 90; 
-                z = (Math.random() - 0.5) * 10; 
-            }
-            // Spikes/Wings/Loose elements (like in the image)
-            else { 
-                x = (Math.random() - 0.5) * 60; 
-                y = (Math.random() * 100) - 60; 
-                z = (Math.random() - 0.5) * 20; 
-                r_col = 0.7, g_col = 0.7, b_col = 0.6; s_size = 0.6;
-            }
-
-            return { x: x, y: y, z: z, r: r_col, g: g_col, b: b_col, s: s_size };
         }
     }
-
 
     // --- Hand Tracking & Logic ---
     let currentTech = 'neutral';
     let shakeIntensity = 0;
+    let mahoragaTimer = 0;
     const videoElement = document.querySelector('.input_video');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
@@ -250,9 +212,8 @@
 
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             const landmarks = results.multiHandLandmarks;
-            
             const isPointing = (lm) => lm[8].y < lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y && lm[20].y > lm[18].y;
-            const isFist = (lm) => lm[8].y > lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y; // Simple fist detection
+            const isFist = (lm) => lm[8].y > lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y;
 
             landmarks.forEach((lm) => {
                 drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 5});
@@ -269,7 +230,6 @@
                 const lm = landmarks[0];
                 const isUp = (t, p) => lm[t].y < lm[p].y;
                 const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
-                
                 if (pinch < 0.04) detected = 'purple';
                 else if (isUp(8,6) && isUp(12,10) && isUp(16,14) && isUp(20,18)) detected = 'shrine';
                 else if (isUp(8,6) && isUp(12,10) && !isUp(16,14)) detected = 'void';
@@ -281,58 +241,43 @@
 
     function updateState(tech) {
         if(currentTech !== tech) {
-            // Reset transition time if state changes
-            mahoragaTransitionTime = 0;
             currentTech = tech;
-
-            // Set UI and global effects
+            mahoragaTimer = 0;
             const nameEl = document.getElementById('technique-name');
-            shakeIntensity = (tech === 'purple' || tech === 'mahoraga') ? 0.7 : 0.1;
+            shakeIntensity = tech !== 'neutral' ? 0.4 : 0;
 
-            if(tech === 'mahoraga') { 
-                glowColor = '#ffffff'; 
-                nameEl.innerText = "With this treasure I summon... Mahoraga"; 
-                bloomPass.strength = 4.0; 
-                // Initial cocoon shape (particles will be updated in animate based on mahoragaTransitionTime)
-                for(let i=0; i<COUNT; i++) {
-                    const radius = 5 + Math.random()*10; // Small initial cocoon
-                    const theta = Math.random() * Math.PI * 2;
-                    const phi = Math.acos(2 * Math.random() - 1);
-                    targetPositions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
-                    targetPositions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
-                    targetPositions[i*3+2] = radius * Math.cos(phi);
-                    targetColors[i*3] = 0.5; targetColors[i*3+1] = 0.1; targetColors[i*3+2] = 0.1; // Dark red/purple
-                    targetSizes[i] = 2.0;
-                }
-            } else if(tech === 'clash') { 
-                glowColor = '#ff00ff'; nameEl.innerText = "Lapse & Reversal: Blue and Red"; bloomPass.strength = 2.0; 
-            } else if(tech === 'shrine') { 
-                glowColor = '#ff0000'; nameEl.innerText = "Domain Expansion: Malevolent Shrine"; bloomPass.strength = 2.5; 
-            } else if(tech === 'purple') { 
-                glowColor = '#bb00ff'; nameEl.innerText = "Secret Technique: Hollow Purple"; bloomPass.strength = 4.0; shakeIntensity = 0.8; 
-            } else if(tech === 'void') { 
-                glowColor = '#00ffff'; nameEl.innerText = "Domain Expansion: Infinite Void"; bloomPass.strength = 2.0; 
-            } else if(tech === 'red') { 
-                glowColor = '#ff3333'; nameEl.innerText = "Reverse Cursed Technique: Red"; bloomPass.strength = 2.5; 
-            } else { 
-                glowColor = '#00ffff'; nameEl.innerText = "Neutral State"; bloomPass.strength = 1.0; 
-                for(let i=0; i<COUNT; i++) {
-                    if(i < COUNT * 0.05) {
-                        const r = 15 + Math.random()*20; const t = Math.random()*6.28; const ph = Math.random()*3.14;
-                        const p = { x: r*Math.sin(ph)*Math.cos(t), y: r*Math.sin(ph)*Math.sin(t), z: r*Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
-                        targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-                        targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
-                        targetSizes[i] = p.s;
-                    } else {
-                        targetPositions[i*3] = 0; targetPositions[i*3+1] = 0; targetPositions[i*3+2] = 0;
-                        targetColors[i*3] = 0; targetColors[i*3+1] = 0; targetColors[i*3+2] = 0;
-                        targetSizes[i] = 0;
-                    }
-                }
+            if(tech === 'mahoraga') { glowColor = '#ffffff'; nameEl.innerText = "Eight-Handled Sword Divergent Sila Divine General Mahoraga"; bloomPass.strength = 3.5; }
+            else if(tech === 'clash') { glowColor = '#ff00ff'; nameEl.innerText = "Lapse & Reversal: Blue and Red"; bloomPass.strength = 2.0; }
+            else if(tech === 'shrine') { glowColor = '#ff0000'; nameEl.innerText = "Domain Expansion: Malevolent Shrine"; bloomPass.strength = 2.5; }
+            else if(tech === 'purple') { glowColor = '#bb00ff'; nameEl.innerText = "Secret Technique: Hollow Purple"; bloomPass.strength = 4.0; shakeIntensity = 0.8; }
+            else if(tech === 'void') { glowColor = '#00ffff'; nameEl.innerText = "Domain Expansion: Infinite Void"; bloomPass.strength = 2.0; }
+            else if(tech === 'red') { glowColor = '#ff3333'; nameEl.innerText = "Reverse Cursed Technique: Red"; bloomPass.strength = 2.5; }
+            else { glowColor = '#00ffff'; nameEl.innerText = "Neutral State"; bloomPass.strength = 1.0; }
+        }
+
+        for(let i=0; i<COUNT; i++) {
+            let p;
+            if(currentTech === 'neutral') {
+                if(i < COUNT * 0.05) {
+                    const r = 15 + Math.random()*20; const t = Math.random()*6.28; const ph = Math.random()*3.14;
+                    p = { x: r*Math.sin(ph)*Math.cos(t), y: r*Math.sin(ph)*Math.sin(t), z: r*Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
+                } else p = { x:0, y:0, z:0, r:0, g:0, b:0, s:0 };
             }
+            else if(currentTech === 'mahoraga') p = getMahoraga(i, mahoragaTimer);
+            else if(currentTech === 'red') p = getRed(i);
+            else if(currentTech === 'clash') {
+                if (i < COUNT/2) { p = getRed(i*2); p.x -= 20; } 
+                else { p = getBlue(i*2); p.x += 20; }
+            }
+            else if(currentTech === 'void') p = getVoid(i);
+            else if(currentTech === 'purple') p = getPurple(i);
+            else if(currentTech === 'shrine') p = getShrine(i);
+            
+            targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
+            targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
+            targetSizes[i] = p.s;
         }
     }
-
 
     const cameraUtils = new Camera(videoElement, {
         onFrame: async () => {
@@ -343,26 +288,18 @@
     });
     cameraUtils.start();
 
-    let lastTime = performance.now();
-
     // --- Animation Loop ---
     function animate() {
         requestAnimationFrame(animate);
-
-        const currentTime = performance.now();
-        const deltaTime = (currentTime - lastTime) / 1000; // in seconds
-        lastTime = currentTime;
-
-        // Update Mahoraga transition time
+        
         if (currentTech === 'mahoraga') {
-            mahoragaTransitionTime += deltaTime;
+            mahoragaTimer++;
+            if (mahoragaTimer === 40) shakeIntensity = 1.5; // Breakout shake
+            if (mahoragaTimer > 40) shakeIntensity *= 0.9;
         }
 
-        // Apply shake effect
         if (shakeIntensity > 0) {
-            const rx = (Math.random()-0.5) * shakeIntensity * 40;
-            const ry = (Math.random()-0.5) * shakeIntensity * 40;
-            renderer.domElement.style.transform = `translate(${rx}px, ${ry}px)`;
+            renderer.domElement.style.transform = `translate(${(Math.random()-0.5)*shakeIntensity*40}px, ${(Math.random()-0.5)*shakeIntensity*40}px)`;
         } else {
             renderer.domElement.style.transform = 'translate(0,0)';
         }
@@ -371,68 +308,23 @@
         const col = particles.geometry.attributes.color.array;
         const siz = particles.geometry.attributes.size.array;
 
-        // Particle position, color, and size interpolation
         for(let i=0; i<COUNT*3; i++) {
             pos[i] += (targetPositions[i] - pos[i]) * 0.1;
             col[i] += (targetColors[i] - col[i]) * 0.1;
         }
         for(let i=0; i<COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.1;
 
-        // Dynamic particle updates for Mahoraga transition
-        if (currentTech === 'mahoraga' && mahoragaTransitionTime <= COCOON_DURATION + BREAKOUT_DURATION) {
-            let p;
-            if (mahoragaTransitionTime <= COCOON_DURATION) { // Cocoon forming
-                const progress = mahoragaTransitionTime / COCOON_DURATION;
-                for(let i=0; i<COUNT; i++) {
-                    p = getMahoragaCocoon(i, progress);
-                    targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-                    targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
-                    targetSizes[i] = p.s;
-                }
-            } else { // Breakout and reveal Mahoraga form
-                const breakoutProgress = (mahoragaTransitionTime - COCOON_DURATION) / BREAKOUT_DURATION;
-                for(let i=0; i<COUNT; i++) {
-                    p = getMahoragaForm(i); // Target Mahoraga form
-                    // Interpolate from cocoon to Mahoraga form, with explosion
-                    const currentX = targetPositions[i*3];
-                    const currentY = targetPositions[i*3+1];
-                    const currentZ = targetPositions[i*3+2];
-
-                    // Explosion outward effect
-                    const explodeFactor = Math.sin(breakoutProgress * Math.PI) * 50; // Peaks in middle of breakout
-                    targetPositions[i*3] = p.x + (Math.random() - 0.5) * explodeFactor;
-                    targetPositions[i*3+1] = p.y + (Math.random() - 0.5) * explodeFactor;
-                    targetPositions[i*3+2] = p.z + (Math.random() - 0.5) * explodeFactor;
-
-                    targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
-                    targetSizes[i] = p.s * breakoutProgress; // Fade in size
-                }
-            }
-        } 
-        else if (currentTech === 'mahoraga') { // Once fully transitioned
-            for(let i=0; i<COUNT; i++) {
-                let p = getMahoragaForm(i);
-                targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-                targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
-                targetSizes[i] = p.s;
-            }
-        }
-        // For other techniques, particles are updated only when state changes, as before.
-
-
         particles.geometry.attributes.position.needsUpdate = true;
         particles.geometry.attributes.color.needsUpdate = true;
         particles.geometry.attributes.size.needsUpdate = true;
         
-        // Custom rotations per tech
         if(currentTech === 'red') {
             particles.rotation.z -= 0.1;
         } else if (currentTech === 'purple') {
             particles.rotation.z += 0.2; 
             particles.rotation.y += 0.05;
-        } else if (currentTech === 'mahoraga') {
-             // Rotate only the wheel/UI part, not the whole body
-             particles.rotation.z += 0.05;
+        } else if (currentTech === 'mahoraga' && mahoragaTimer > 40) {
+            particles.rotation.y += 0.02;
         } else if (currentTech === 'clash') {
             particles.rotation.z += 0.02;
         } else if (currentTech === 'shrine') {
