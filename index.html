@@ -2,23 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JJK: Ultimate Techniques</title>
+    <title>JJK: Cursed Technique</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; }
-        #ui { position: absolute; top: 10%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
-        h1 { font-size: 3rem; margin: 0; letter-spacing: 10px; font-weight: 900; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #technique-name { font-size: 1.2rem; color: #00ffff; margin-top: 15px; font-weight: bold; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
-        #video-container { position: absolute; bottom: 2%; left: 18%; transform: translateX(-50%) scaleX(-1); width: 85vw; max-width: 450px; height: 42vh; border: 2px solid rgba(255, 255, 255, 0.2); z-index: 20; background-color: #000; border-radius: 25px; overflow: hidden; }
+    
+        #ui {
+            position: absolute;
+            top: 10%;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        h1 { 
+            font-size: 3rem; margin: 0; letter-spacing: 10px; 
+            font-weight: 900; 
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to bottom, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        #technique-name { 
+            font-size: 1.2rem; color: #00ffff; margin-top: 15px; 
+            font-weight: bold; letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        #video-container {
+            position: absolute;
+            bottom: 2%;
+            left: 18%;
+            transform: translateX(-50%) scaleX(-1);
+            width: 85vw;
+            max-width: 450px;
+            height: 42vh; 
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 20;
+            background-color: #000; 
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+        }
+
         video { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        #grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 5;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+        }
     </style>
-    <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } } </script>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div id="ui"><h1>呪術廻戦</h1><div id="technique-name">INITIALIZING...</div></div>
-    <div id="video-container"><video class="input_video"></video><canvas id="output_canvas"></canvas></div>
+
+    <div id="grain"></div>
+
+    <div id="ui">
+        <h1>呪術廻戦</h1>
+        <div id="technique-name">CURSED ENERGY</div>
+    </div>
+
+    <div id="video-container">
+        <video class="input_video"></video>
+        <canvas id="output_canvas"></canvas>
+    </div>
 
 <script type="module">
     import * as THREE from 'three';
@@ -26,174 +90,367 @@
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
+    // --- Scene & Rendering ---
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 65;
+    camera.position.z = 60; // Adjusted for larger Mahoraga form
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.0, 0.4, 0.85);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
     composer.addPass(bloomPass);
 
-    const COUNT = 25000;
+    const COUNT = 30000; // Increased particle count for detail
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(COUNT * 3);
     const colors = new Float32Array(COUNT * 3);
+    const sizes = new Float32Array(COUNT);
+    
     const targetPositions = new Float32Array(COUNT * 3);
     const targetColors = new Float32Array(COUNT * 3);
+    const targetSizes = new Float32Array(COUNT);
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.4, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true }));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.35, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
     scene.add(particles);
 
-    let currentTech = 'neutral';
-    let mahoragaTimer = 0;
-    let shake = 0;
+    // --- Global Mahoraga State Variables ---
+    let mahoragaTransitionTime = 0; // Tracks how long Mahoraga has been active
+    const COCOON_DURATION = 1.0; // Seconds for cocoon to form
+    const BREAKOUT_DURATION = 1.0; // Seconds for cocoon to explode and reveal Mahoraga
 
-    // --- Technique Logics ---
+    // --- Technique Functions ---
+    function getRed(i) {
+        const t = (i / COUNT);
+        const radius = 2 + (t * 40); 
+        const angle = t * 15 + ((i % 3) * (Math.PI * 2 / 3));
+        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random() - 0.5) * 10, r: 0.9, g: 0.1, b: 0.1, s: 1.2 };
+    }
+
+    function getBlue(i) {
+        const t = i / COUNT;
+        const angle = -t * 15;
+        const radius = 3 + (t * 35);
+        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random()-0.5)*10, r: 0.1, g: 0.3, b: 1.0, s: 1.2 };
+    }
+
+    function getPurple(i) {
+        const r = 22; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
+        return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.5, g: 0.2, b: 0.9, s: 2.5 };
+    }
 
     function getVoid(i) {
-        if (i < COUNT * 0.1) { // Dark Core (The Pupil)
-            const r = Math.random() * 5;
-            const t = Math.random() * 6.28; const ph = Math.acos(2 * Math.random() - 1);
-            return { x: r*Math.sin(ph)*Math.cos(t), y: r*Math.sin(ph)*Math.sin(t), z: r*Math.cos(ph), r: 0.05, g: 0.05, b: 0.1 };
-        } else if (i < COUNT * 0.7) { // Rotating Iris
-            const r = 15 + Math.random() * 35;
-            const theta = (i * 0.02) + (Date.now() * 0.002);
-            const z = (Math.random() - 0.5) * 10;
-            return { x: r * Math.cos(theta), y: r * Math.sin(theta), z: z, r: 0.2, g: 0.8, b: 1 };
-        } else { // Distant Stars (Horizon)
-            const r = 60 + Math.random() * 100;
-            const t = Math.random() * 6.28; const ph = Math.acos(2 * Math.random() - 1);
-            return { x: r*Math.sin(ph)*Math.cos(t), y: r*Math.sin(ph)*Math.sin(t), z: r*Math.cos(ph), r: 1, g: 1, b: 1 };
+        if (i < COUNT * 0.15) {
+            const angle = Math.random() * Math.PI * 2;
+            return { x: 26 * Math.cos(angle), y: 26 * Math.sin(angle), z: (Math.random()-0.5) * 1, r: 1, g: 1, b: 1, s: 2.5 };
+        } else {
+            const radius = 30 + Math.random() * 90;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.sin(phi) * Math.sin(theta), z: radius * Math.cos(phi), r: 0.1, g: 0.6, b: 1.0, s: 0.7 };
         }
     }
 
     function getShrine(i) {
-        if (i < COUNT * 0.5) { // Blood Floor
-            const r = Math.sqrt(Math.random()) * 90;
-            const theta = (i * 0.005);
-            return { x: r * Math.cos(theta), y: -30, z: r * Math.sin(theta), r: 0.6, g: 0, b: 0 };
-        } else if (i < COUNT * 0.8) { // The Bone Pillar
-            const t = Math.random();
-            return { x: (Math.random()-0.5)*15, y: (t*70)-30, z: (Math.random()-0.5)*15, r: 0.15, g: 0.15, b: 0.15 };
-        } else { // Horns/Skulls
-            const side = (i % 2 === 0) ? 1 : -1;
-            const t = Math.random();
-            return { x: side * (15 + t * 25), y: 15 + (t * 20), z: Math.sin(t * 4) * 15, r: 0.9, g: 0.8, b: 0.8 };
-        }
+        const total = COUNT;
+        if (i < total * 0.3) return { x: (Math.random()-0.5)*80, y: -15, z: (Math.random()-0.5)*80, r: 0.4, g: 0, b: 0, s: 0.8 };
+        else if (i < total * 0.4) {
+            const px = ((i%4)<2?1:-1)*12; const pz = ((i%4)%2==0?1:-1)*8;
+            return { x: px+(Math.random()-0.5)*2, y: -15+Math.random()*30, z: pz+(Math.random()-0.5)*2, r: 0.2, g: 0.2, b: 0.2, s: 0.6 };
+        } else if (i < total * 0.6) {
+            const t = Math.random() * Math.PI * 2; const rad = Math.random() * 30;
+            const curve = Math.pow(rad/30, 2) * 10; 
+            return { x: rad*Math.cos(t), y: 15 - curve + (Math.random()*2), z: rad*Math.sin(t)*0.6, r: 0.6, g: 0, b: 0, s: 0.6 };
+        } else return { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
     }
 
-    function getMahoraga(i, timer) {
-        if (timer < 45) { // Cocoon
-            const r = 8 + Math.sin(timer * 0.4) * 2;
-            const theta = Math.random() * 6.28;
-            return { x: r * Math.cos(theta), y: r * Math.sin(theta), z: (Math.random()-0.5)*5, r: 0.4, g: 0, b: 0.05 };
-        } else { // General Silhouette
-            if (i < COUNT * 0.15) { // Golden Wheel
-                const angle = (i * 0.2) + (Date.now() * 0.005);
-                return { x: 10 * Math.cos(angle), y: 38, z: 10 * Math.sin(angle), r: 1.0, g: 0.8, b: 0 };
-            } else { // Body
-                const t = Math.random();
-                const width = (1 - t) * 22;
-                return { x: (Math.random()-0.5)*width, y: (t*65)-25, z: (Math.random()-0.5)*15, r: 0.9, g: 0.9, b: 0.85 };
+    // NEW MAHORAGA TRANSITION LOGIC
+    function getMahoragaCocoon(i, progress) {
+        const radius = 5 + (20 * progress);
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        return { 
+            x: radius * Math.sin(phi) * Math.cos(theta), 
+            y: radius * Math.sin(phi) * Math.sin(theta), 
+            z: radius * Math.cos(phi), 
+            r: 0.4 + (1-progress)*0.6, g: 0.1, b: 0.1 + (1-progress)*0.4, s: 1.0 + progress * 2.0 
+        };
+    }
+
+    function getMahoragaForm(i) {
+        // Dot-dot UI Wheel
+        if (i < COUNT * 0.15) { 
+            const segment = Math.floor((i / (COUNT * 0.15)) * 8);
+            const angle = (segment * Math.PI * 2) / 8;
+            const radius = 25; // Size of the wheel
+            const r = 1.0 + Math.sin(angle * 2 + Date.now() * 0.005) * 0.2; // Pulsating color
+            return { x: radius * Math.cos(angle), y: radius * Math.sin(angle) + 40, z: -10, r: r, g: r * 0.8, b: r * 0.2, s: 4.0 };
+        } 
+        // Mahoraga Body (based on image)
+        else {
+            const t = Math.random();
+            let x, y, z;
+            let r_col = 0.8, g_col = 0.8, b_col = 0.7;
+            let s_size = 0.8;
+
+            // Head/Upper body
+            if (t < 0.2) { 
+                x = (Math.random() - 0.5) * 20; 
+                y = (t * 100) - 10; 
+                z = (Math.random() - 0.5) * 5; 
+                s_size = 1.0;
             }
+            // Mid Body / Waist
+            else if (t < 0.5) { 
+                x = (Math.random() - 0.5) * 25; 
+                y = (t * 100) - 50; 
+                z = (Math.random() - 0.5) * 7; 
+            }
+            // Lower Body / Legs (implied by cloak)
+            else if (t < 0.8) { 
+                x = (Math.random() - 0.5) * 30; 
+                y = (t * 100) - 90; 
+                z = (Math.random() - 0.5) * 10; 
+            }
+            // Spikes/Wings/Loose elements (like in the image)
+            else { 
+                x = (Math.random() - 0.5) * 60; 
+                y = (Math.random() * 100) - 60; 
+                z = (Math.random() - 0.5) * 20; 
+                r_col = 0.7, g_col = 0.7, b_col = 0.6; s_size = 0.6;
+            }
+
+            return { x: x, y: y, z: z, r: r_col, g: g_col, b: b_col, s: s_size };
         }
     }
 
-    // --- Hands & Camera ---
+
+    // --- Hand Tracking & Logic ---
+    let currentTech = 'neutral';
+    let shakeIntensity = 0;
     const videoElement = document.querySelector('.input_video');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    let glowColor = '#00ffff';
+
     const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.75 });
+    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7 });
 
     hands.onResults((results) => {
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
         let detected = 'neutral';
+
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const lms = results.multiHandLandmarks;
-            const isFist = (lm) => lm[8].y > lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y;
-            const isUp = (lm, t, p) => lm[t].y < lm[p].y;
+            const landmarks = results.multiHandLandmarks;
             
-            if (lms.length === 2) {
-                if (isFist(lms[0]) && isFist(lms[1])) detected = 'mahoraga';
-                else detected = 'purple';
+            const isPointing = (lm) => lm[8].y < lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y && lm[20].y > lm[18].y;
+            const isFist = (lm) => lm[8].y > lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y; // Simple fist detection
+
+            landmarks.forEach((lm) => {
+                drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 5});
+                drawLandmarks(canvasCtx, lm, {color: '#fff', lineWidth: 1, radius: 2});
+            });
+
+            if (landmarks.length === 2) {
+                if (isFist(landmarks[0]) && isFist(landmarks[1])) detected = 'mahoraga';
+                else if (isPointing(landmarks[0]) && isPointing(landmarks[1])) {
+                    const dist = Math.hypot(landmarks[0][8].x - landmarks[1][8].x, landmarks[0][8].y - landmarks[1][8].y);
+                    detected = (dist < 0.08) ? 'purple' : 'clash';
+                }
             } else {
-                const lm = lms[0];
+                const lm = landmarks[0];
+                const isUp = (t, p) => lm[t].y < lm[p].y;
                 const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
+                
                 if (pinch < 0.04) detected = 'purple';
-                else if (isUp(lm,8,6) && isUp(lm,12,10) && isUp(lm,16,14) && isUp(lm,20,18)) detected = 'shrine';
-                else if (isUp(lm,8,6) && isUp(lm,12,10) && !isUp(lm,16,14)) detected = 'void';
-                else if (isUp(lm,8,6) && !isUp(lm,12,10)) detected = 'red';
-                else if (!isUp(lm,8,6) && isUp(lm,12,10)) detected = 'blue';
+                else if (isUp(8,6) && isUp(12,10) && isUp(16,14) && isUp(20,18)) detected = 'shrine';
+                else if (isUp(8,6) && isUp(12,10) && !isUp(16,14)) detected = 'void';
+                else if (isUp(8,6) && !isUp(12,10)) detected = 'red';
             }
         }
         updateState(detected);
     });
 
     function updateState(tech) {
-        if(currentTech === tech && tech !== 'neutral') return;
-        currentTech = tech;
-        mahoragaTimer = 0;
-        document.getElementById('technique-name').innerText = tech === 'neutral' ? "CURSED ENERGY" : tech.toUpperCase();
+        if(currentTech !== tech) {
+            // Reset transition time if state changes
+            mahoragaTransitionTime = 0;
+            currentTech = tech;
 
-        for(let i=0; i<COUNT; i++) {
-            let p;
-            if (tech === 'void') p = getVoid(i);
-            else if (tech === 'shrine') p = getShrine(i);
-            else if (tech === 'mahoraga') p = getMahoraga(i, 0);
-            else if (tech === 'red') p = { x: (Math.random()-0.5)*50, y: (Math.random()-0.5)*50, z: 0, r: 2, g: 0.1, b: 0.1 };
-            else if (tech === 'blue') p = { x: (Math.random()-0.5)*30, y: (Math.random()-0.5)*30, z: (Math.random()-0.5)*40, r: 0.1, g: 0.4, b: 2.5 };
-            else if (tech === 'purple') p = { x: (Math.random()-0.5)*40, y: (Math.random()-0.5)*40, z: (Math.random()-0.5)*40, r: 0.7, g: 0.2, b: 1 };
-            else p = { x: (Math.random()-0.5)*20, y: (Math.random()-0.5)*20, z: (Math.random()-0.5)*20, r: 0.1, g: 0.3, b: 0.4 };
+            // Set UI and global effects
+            const nameEl = document.getElementById('technique-name');
+            shakeIntensity = (tech === 'purple' || tech === 'mahoraga') ? 0.7 : 0.1;
 
-            targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-            targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
+            if(tech === 'mahoraga') { 
+                glowColor = '#ffffff'; 
+                nameEl.innerText = "With this treasure I summon... Mahoraga"; 
+                bloomPass.strength = 4.0; 
+                // Initial cocoon shape (particles will be updated in animate based on mahoragaTransitionTime)
+                for(let i=0; i<COUNT; i++) {
+                    const radius = 5 + Math.random()*10; // Small initial cocoon
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    targetPositions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+                    targetPositions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+                    targetPositions[i*3+2] = radius * Math.cos(phi);
+                    targetColors[i*3] = 0.5; targetColors[i*3+1] = 0.1; targetColors[i*3+2] = 0.1; // Dark red/purple
+                    targetSizes[i] = 2.0;
+                }
+            } else if(tech === 'clash') { 
+                glowColor = '#ff00ff'; nameEl.innerText = "Lapse & Reversal: Blue and Red"; bloomPass.strength = 2.0; 
+            } else if(tech === 'shrine') { 
+                glowColor = '#ff0000'; nameEl.innerText = "Domain Expansion: Malevolent Shrine"; bloomPass.strength = 2.5; 
+            } else if(tech === 'purple') { 
+                glowColor = '#bb00ff'; nameEl.innerText = "Secret Technique: Hollow Purple"; bloomPass.strength = 4.0; shakeIntensity = 0.8; 
+            } else if(tech === 'void') { 
+                glowColor = '#00ffff'; nameEl.innerText = "Domain Expansion: Infinite Void"; bloomPass.strength = 2.0; 
+            } else if(tech === 'red') { 
+                glowColor = '#ff3333'; nameEl.innerText = "Reverse Cursed Technique: Red"; bloomPass.strength = 2.5; 
+            } else { 
+                glowColor = '#00ffff'; nameEl.innerText = "Neutral State"; bloomPass.strength = 1.0; 
+                for(let i=0; i<COUNT; i++) {
+                    if(i < COUNT * 0.05) {
+                        const r = 15 + Math.random()*20; const t = Math.random()*6.28; const ph = Math.random()*3.14;
+                        const p = { x: r*Math.sin(ph)*Math.cos(t), y: r*Math.sin(ph)*Math.sin(t), z: r*Math.cos(ph), r: 0.1, g: 0.1, b: 0.2, s: 0.4 };
+                        targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
+                        targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
+                        targetSizes[i] = p.s;
+                    } else {
+                        targetPositions[i*3] = 0; targetPositions[i*3+1] = 0; targetPositions[i*3+2] = 0;
+                        targetColors[i*3] = 0; targetColors[i*3+1] = 0; targetColors[i*3+2] = 0;
+                        targetSizes[i] = 0;
+                    }
+                }
+            }
         }
     }
 
-    const cameraUtils = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 640, height: 480 });
+
+    const cameraUtils = new Camera(videoElement, {
+        onFrame: async () => {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            await hands.send({image: videoElement});
+        }, width: 640, height: 480
+    });
     cameraUtils.start();
 
+    let lastTime = performance.now();
+
+    // --- Animation Loop ---
     function animate() {
         requestAnimationFrame(animate);
+
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - lastTime) / 1000; // in seconds
+        lastTime = currentTime;
+
+        // Update Mahoraga transition time
         if (currentTech === 'mahoraga') {
-            mahoragaTimer++;
-            if (mahoragaTimer === 45) shake = 15;
-            for(let i=0; i<COUNT; i++) {
-                let p = getMahoraga(i, mahoragaTimer);
-                targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-                if (mahoragaTimer === 45) { targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b; }
-            }
+            mahoragaTransitionTime += deltaTime;
         }
 
-        if (currentTech === 'void') {
-            for(let i=0; i<COUNT; i++) {
-                let p = getVoid(i);
-                targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-            }
-        }
-
-        if (shake > 0) {
-            renderer.domElement.style.transform = `translate(${(Math.random()-0.5)*shake}px, ${(Math.random()-0.5)*shake}px)`;
-            shake *= 0.9;
+        // Apply shake effect
+        if (shakeIntensity > 0) {
+            const rx = (Math.random()-0.5) * shakeIntensity * 40;
+            const ry = (Math.random()-0.5) * shakeIntensity * 40;
+            renderer.domElement.style.transform = `translate(${rx}px, ${ry}px)`;
+        } else {
+            renderer.domElement.style.transform = 'translate(0,0)';
         }
 
         const pos = particles.geometry.attributes.position.array;
         const col = particles.geometry.attributes.color.array;
+        const siz = particles.geometry.attributes.size.array;
+
+        // Particle position, color, and size interpolation
         for(let i=0; i<COUNT*3; i++) {
             pos[i] += (targetPositions[i] - pos[i]) * 0.1;
             col[i] += (targetColors[i] - col[i]) * 0.1;
         }
+        for(let i=0; i<COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.1;
+
+        // Dynamic particle updates for Mahoraga transition
+        if (currentTech === 'mahoraga' && mahoragaTransitionTime <= COCOON_DURATION + BREAKOUT_DURATION) {
+            let p;
+            if (mahoragaTransitionTime <= COCOON_DURATION) { // Cocoon forming
+                const progress = mahoragaTransitionTime / COCOON_DURATION;
+                for(let i=0; i<COUNT; i++) {
+                    p = getMahoragaCocoon(i, progress);
+                    targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
+                    targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
+                    targetSizes[i] = p.s;
+                }
+            } else { // Breakout and reveal Mahoraga form
+                const breakoutProgress = (mahoragaTransitionTime - COCOON_DURATION) / BREAKOUT_DURATION;
+                for(let i=0; i<COUNT; i++) {
+                    p = getMahoragaForm(i); // Target Mahoraga form
+                    // Interpolate from cocoon to Mahoraga form, with explosion
+                    const currentX = targetPositions[i*3];
+                    const currentY = targetPositions[i*3+1];
+                    const currentZ = targetPositions[i*3+2];
+
+                    // Explosion outward effect
+                    const explodeFactor = Math.sin(breakoutProgress * Math.PI) * 50; // Peaks in middle of breakout
+                    targetPositions[i*3] = p.x + (Math.random() - 0.5) * explodeFactor;
+                    targetPositions[i*3+1] = p.y + (Math.random() - 0.5) * explodeFactor;
+                    targetPositions[i*3+2] = p.z + (Math.random() - 0.5) * explodeFactor;
+
+                    targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
+                    targetSizes[i] = p.s * breakoutProgress; // Fade in size
+                }
+            }
+        } 
+        else if (currentTech === 'mahoraga') { // Once fully transitioned
+            for(let i=0; i<COUNT; i++) {
+                let p = getMahoragaForm(i);
+                targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
+                targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
+                targetSizes[i] = p.s;
+            }
+        }
+        // For other techniques, particles are updated only when state changes, as before.
+
+
         particles.geometry.attributes.position.needsUpdate = true;
         particles.geometry.attributes.color.needsUpdate = true;
-        particles.rotation.y += 0.005;
+        particles.geometry.attributes.size.needsUpdate = true;
+        
+        // Custom rotations per tech
+        if(currentTech === 'red') {
+            particles.rotation.z -= 0.1;
+        } else if (currentTech === 'purple') {
+            particles.rotation.z += 0.2; 
+            particles.rotation.y += 0.05;
+        } else if (currentTech === 'mahoraga') {
+             // Rotate only the wheel/UI part, not the whole body
+             particles.rotation.z += 0.05;
+        } else if (currentTech === 'clash') {
+            particles.rotation.z += 0.02;
+        } else if (currentTech === 'shrine') {
+            particles.rotation.set(0, 0, 0); 
+        } else {
+            particles.rotation.y += 0.005;
+        }
+
         composer.render();
     }
     animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    });
 </script>
 </body>
 </html>
