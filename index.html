@@ -2,38 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JJK: Cursed Technique</title>
+    <title>JJK: MAXIMUM OUTPUT</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; }
-        #ui { position: absolute; top: 10%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
-        h1 { font-size: 3rem; margin: 0; letter-spacing: 10px; font-weight: 900; text-shadow: 0 0 20px rgba(0, 0, 0, 0.3); background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #technique-name { font-size: 1.2rem; color: #00ffff; margin-top: 15px; font-weight: bold; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
-        #video-container { position: absolute; bottom: 2%; left: 18%; transform: translateX(-50%) scaleX(-1); width: 85vw; max-width: 450px; height: 42vh; border: 2px solid rgba(255, 255, 255, 0.2); z-index: 20; background-color: #000; border-radius: 25px; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.9); }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        #ui { position: absolute; top: 8%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
+        h1 { font-size: 3.5rem; margin: 0; letter-spacing: 15px; font-weight: 900; text-shadow: 0 0 30px rgba(255, 255, 255, 0.2); background: linear-gradient(to bottom, #fff, #444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #technique-name { font-size: 1.5rem; color: #00ffff; margin-top: 10px; font-weight: bold; letter-spacing: 5px; text-transform: uppercase; transition: all 0.3s; }
+        #video-container { position: absolute; bottom: 20px; left: 20px; transform: scaleX(-1); width: 350px; height: 260px; border: 3px solid #444; border-radius: 20px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1); }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
         #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E"); }
-
-        /* Dismantle Slash Overlay Effects */
-        #slash-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 15; overflow: hidden; }
-        .slash-line { position: absolute; height: 3px; background: linear-gradient(90deg, transparent 0%, rgba(255, 30, 30, 0.5) 5%, rgba(255, 100, 100, 0.8) 20%, rgba(255, 200, 200, 0.95) 40%, #fff 50%, rgba(255, 200, 200, 0.95) 60%, rgba(255, 100, 100, 0.8) 80%, rgba(255, 30, 30, 0.5) 95%, transparent 100%); box-shadow: 0 0 12px rgba(255, 0, 0, 1), 0 0 35px rgba(255, 0, 0, 0.7), 0 0 4px #fff; animation: slash-cut 0.5s ease-out forwards; }
-        .slash-line.thick { height: 5px; box-shadow: 0 0 18px rgba(255, 0, 0, 1), 0 0 50px rgba(255, 0, 0, 0.7), 0 0 6px #fff; }
-        .slash-line.from-right { animation-name: slash-cut-right; }
-        @keyframes slash-cut { 0% { clip-path: inset(0 100% 0 0); opacity: 1; } 25% { clip-path: inset(0 0 0 0); opacity: 1; } 100% { clip-path: inset(0 0 0 0); opacity: 0; } }
-        @keyframes slash-cut-right { 0% { clip-path: inset(0 0 0 100%); opacity: 1; } 25% { clip-path: inset(0 0 0 0); opacity: 1; } 100% { clip-path: inset(0 0 0 0); opacity: 0; } }
-        .slash-flash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.12) 0%, transparent 70%); animation: flash-fade 0.25s ease-out forwards; pointer-events: none; z-index: 14; }
-        @keyframes flash-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
-        .screen-crack { position: fixed; height: 2px; pointer-events: none; z-index: 16; background: linear-gradient(90deg, transparent, rgba(40, 0, 0, 0.9) 15%, rgba(80, 0, 0, 0.8) 50%, rgba(40, 0, 0, 0.9) 85%, transparent); box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.15), 0 0 8px rgba(255, 0, 0, 0.3); }
-        .fire-ember { position: fixed; border-radius: 50%; pointer-events: none; z-index: 17; }
+        /* Dismantle CSS */
+        #slash-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 15; }
+        .slash-line { position: absolute; height: 4px; background: linear-gradient(90deg, transparent, #fff 50%, transparent); box-shadow: 0 0 20px #f00; animation: slash-cut 0.4s ease-out forwards; }
+        @keyframes slash-cut { 0% { transform: scaleX(0); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+        .screen-crack { position: fixed; height: 1px; background: rgba(255,0,0,0.5); pointer-events: none; z-index: 16; }
     </style>
     <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } } </script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 </head>
 <body>
-    <div id="grain"></div>
     <div id="slash-container"></div>
-    <div id="ui"><h1>呪術廻戦</h1><div id="technique-name">CURSED ENERGY</div></div>
+    <div id="ui"><h1>呪術廻戦</h1><div id="technique-name">RESONANCE</div></div>
     <div id="video-container"><video class="input_video"></video><canvas id="output_canvas"></canvas></div>
 
 <script type="module">
@@ -43,143 +34,132 @@
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 55;
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.z = 80;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-    composer.addPass(bloomPass);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.0, 0.4, 0.85);
+    composer.addPass(bloom);
 
-    const COUNT = 20000;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(COUNT * 3);
-    const colors = new Float32Array(COUNT * 3);
-    const sizes = new Float32Array(COUNT);
-    const targetPositions = new Float32Array(COUNT * 3);
-    const targetColors = new Float32Array(COUNT * 3);
-    const targetSizes = new Float32Array(COUNT);
+    const COUNT = 30000;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(COUNT * 3), col = new Float32Array(COUNT * 3), siz = new Float32Array(COUNT);
+    const tarPos = new Float32Array(COUNT * 3), tarCol = new Float32Array(COUNT * 3), tarSiz = new Float32Array(COUNT);
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setAttribute('size', new THREE.BufferAttribute(siz, 1));
 
-    const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.3, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-    scene.add(particles);
+    const mat = new THREE.PointsMaterial({ size: 0.5, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true });
+    const points = new THREE.Points(geo, mat);
+    scene.add(points);
 
-    // Technique: Dismantle
-    function getDismantle(i) {
-        if (i < COUNT * 0.05) {
-            const r = Math.random() * 5;
-            const theta = Math.random() * 6.28;
-            const phi = Math.acos(2 * Math.random() - 1);
-            return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.6, g: 0, b: 0, s: 0.8 };
+    // --- HEAVY GEOMETRY LOGIC ---
+    function setPurple() {
+        for(let i=0; i<COUNT; i++) {
+            const r = 25; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
+            tarPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            tarPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+            tarPos[i*3+2] = r * Math.cos(phi);
+            tarCol[i*3] = 0.7; tarCol[i*3+1] = 0; tarCol[i*3+2] = 1.0;
+            tarSiz[i] = 1.5;
         }
-        return { x: 0, y: 0, z: 0, r: 0, g: 0, b: 0, s: 0 };
     }
 
-    // Slash VFX
-    let slashInterval = null; let emberInterval = null;
-    const slashContainer = document.getElementById('slash-container');
+    function setVoid() {
+        for(let i=0; i<COUNT; i++) {
+            const r = 35 + Math.random() * 50; const t = Math.random() * 6.28;
+            tarPos[i*3] = r * Math.cos(t); tarPos[i*3+1] = r * Math.sin(t); tarPos[i*3+2] = (Math.random()-0.5)*100;
+            tarCol[i*3] = 1; tarCol[i*3+1] = 1; tarCol[i*3+2] = 1;
+            tarSiz[i] = 0.5;
+        }
+    }
+
+    function setMahoraga() {
+        for(let i=0; i<COUNT; i++) {
+            if(i < COUNT*0.2) { // Wheel
+                const a = (i*0.1); tarPos[i*3] = 15*Math.cos(a); tarPos[i*3+1] = 45+Math.sin(a*8)*2; tarPos[i*3+2] = 15*Math.sin(a);
+                tarCol[i*3] = 1; tarCol[i*3+1] = 0.8; tarCol[i*3+2] = 0;
+            } else { // Body
+                tarPos[i*3] = (Math.random()-0.5)*30; tarPos[i*3+1] = (Math.random()*80)-40; tarPos[i*3+2] = (Math.random()-0.5)*20;
+                tarCol[i*3] = 0.9; tarCol[i*3+1] = 0.9; tarCol[i*3+2] = 0.8;
+            }
+        }
+    }
 
     function spawnSlash() {
-        const slash = document.createElement('div');
-        slash.className = 'slash-line' + (Math.random() > 0.5 ? ' thick' : '');
-        const angle = -50 + Math.random() * 100;
-        const top = Math.random() * 100;
-        const width = 40 + Math.random() * 60;
-        if (Math.random() > 0.5) { slash.classList.add('from-right'); slash.style.right = `${Math.random() * 20}%`; }
-        else { slash.style.left = `${Math.random() * 20}%`; }
-        slash.style.top = `${top}%`; slash.style.width = `${width}%`;
-        slash.style.transform = `rotate(${angle}deg)`;
-        slashContainer.appendChild(slash);
-        setTimeout(() => slash.remove(), 500);
-
-        if (Math.random() > 0.4) {
-            const crack = document.createElement('div'); crack.className = 'screen-crack';
-            crack.style.top = `${top}%`; crack.style.width = `${width * 0.6}%`; crack.style.left = `${Math.random() * 30}%`;
-            crack.style.transform = `rotate(${angle + (Math.random()-0.5)*15}deg)`;
-            document.body.appendChild(crack); setTimeout(() => crack.remove(), 1500);
-        }
+        const s = document.createElement('div'); s.className = 'slash-line';
+        s.style.top = Math.random()*100+'%'; s.style.left = '10%'; s.style.width = '80%';
+        s.style.transform = `rotate(${Math.random()*360}deg)`;
+        document.getElementById('slash-container').appendChild(s);
+        setTimeout(()=>s.remove(), 400);
     }
 
-    function spawnEmbers() {
-        const ember = document.createElement('div'); ember.className = 'fire-ember';
-        const size = 2 + Math.random() * 4; ember.style.width = `${size}px`; ember.style.height = `${size}px`;
-        ember.style.left = `${Math.random() * 100}%`; ember.style.top = `${60 + Math.random() * 40}%`;
-        ember.style.background = `hsl(${10 + Math.random() * 30}, 100%, 60%)`;
-        const dur = 1000 + Math.random() * 1000;
-        ember.animate([{ transform: 'translate(0,0)', opacity: 1 }, { transform: `translate(${(Math.random()-0.5)*100}px, -200px)`, opacity: 0 }], { duration: dur });
-        document.body.appendChild(ember); setTimeout(() => ember.remove(), dur);
-    }
+    // --- TRACKING ---
+    const video = document.querySelector('.input_video');
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.8 });
 
     let currentTech = 'neutral';
-    let shakeIntensity = 0;
-    const videoElement = document.querySelector('.input_video');
-    const canvasElement = document.getElementById('output_canvas');
-    const canvasCtx = canvasElement.getContext('2d');
-    let glowColor = '#00ffff';
-
-    const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7 });
-
-    hands.onResults((results) => {
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        let detected = 'neutral';
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const lm = results.multiHandLandmarks[0];
-            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, { color: glowColor, lineWidth: 5 });
-            drawLandmarks(canvasCtx, lm, { color: '#fff', lineWidth: 1, radius: 2 });
-            const isUp = (t, p) => lm[t].y < lm[p].y;
-            const tipsClose = Math.hypot(lm[8].x - lm[12].x, lm[8].y - lm[12].y);
-            if (isUp(8, 6) && isUp(12, 10) && !isUp(16, 14) && tipsClose < 0.03) detected = 'dismantle';
+    hands.onResults((res) => {
+        let tech = 'neutral';
+        if(res.multiHandLandmarks.length > 0) {
+            const h = res.multiHandLandmarks[0];
+            const finger = (id) => h[id].y < h[id-2].y;
+            const dist = (a, b) => Math.hypot(h[a].x - h[b].x, h[a].y - h[b].y);
+            
+            if(res.multiHandLandmarks.length === 2) tech = 'mahoraga';
+            else {
+                const isPinch = dist(8, 4) < 0.04;
+                const isCrossed = dist(8, 12) < 0.02 && finger(8) && finger(12);
+                if(isPinch) tech = 'purple';
+                else if(isCrossed) tech = 'void';
+                else if(finger(8) && finger(12) && !finger(16)) tech = 'dismantle';
+                else if(finger(8) && !finger(12)) tech = 'red';
+                else if(finger(8) && finger(12) && finger(16) && finger(20)) tech = 'shrine';
+            }
         }
-        updateState(detected);
+        if(tech !== currentTech) {
+            currentTech = tech;
+            document.getElementById('technique-name').innerText = tech;
+            if(tech === 'purple') setPurple();
+            if(tech === 'void') setVoid();
+            if(tech === 'mahoraga') setMahoraga();
+            if(tech === 'dismantle') { for(let i=0; i<COUNT*3; i++) { tarPos[i]=0; tarCol[i]=1; } }
+        }
     });
 
-    function updateState(tech) {
-        if (currentTech === tech) return;
-        currentTech = tech;
-        clearInterval(slashInterval); clearInterval(emberInterval);
-        const nameEl = document.getElementById('technique-name');
-        
-        if (tech === 'dismantle') {
-            glowColor = '#ff2222'; nameEl.innerText = "Dismantle"; bloomPass.strength = 3.0;
-            shakeIntensity = 1.2; slashInterval = setInterval(spawnSlash, 60); emberInterval = setInterval(spawnEmbers, 150);
-        } else {
-            glowColor = '#00ffff'; nameEl.innerText = "Neutral State"; bloomPass.strength = 1.0; shakeIntensity = 0;
-        }
-
-        for (let i = 0; i < COUNT; i++) {
-            let p = (tech === 'dismantle') ? getDismantle(i) : { x: (Math.random()-0.5)*30, y: (Math.random()-0.5)*30, z: (Math.random()-0.5)*30, r: 0.1, g: 0.1, b: 0.2, s: 0.2 };
-            targetPositions[i * 3] = p.x; targetPositions[i * 3 + 1] = p.y; targetPositions[i * 3 + 2] = p.z;
-            targetColors[i * 3] = p.r; targetColors[i * 3 + 1] = p.g; targetColors[i * 3 + 2] = p.b;
-            targetSizes[i] = p.s;
-        }
-    }
-
-    new Camera(videoElement, { onFrame: async () => { await hands.send({ image: videoElement }); }, width: 640, height: 480 }).start();
+    new Camera(video, {onFrame: async () => {await hands.send({image: video})}, width: 640, height: 480}).start();
 
     function animate() {
         requestAnimationFrame(animate);
-        if (shakeIntensity > 0) renderer.domElement.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`;
-        else renderer.domElement.style.transform = 'none';
+        const time = Date.now() * 0.001;
+        const pArr = points.geometry.attributes.position.array;
+        const cArr = points.geometry.attributes.color.array;
 
-        const pos = particles.geometry.attributes.position.array;
-        const col = particles.geometry.attributes.color.array;
-        const siz = particles.geometry.attributes.size.array;
-        for (let i = 0; i < COUNT * 3; i++) { pos[i] += (targetPositions[i] - pos[i]) * 0.1; col[i] += (targetColors[i] - col[i]) * 0.1; }
-        for (let i = 0; i < COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.1;
+        for(let i=0; i<COUNT*3; i++) {
+            pArr[i] += (tarPos[i] - pArr[i]) * 0.12;
+            cArr[i] += (tarCol[i] - cArr[i]) * 0.12;
+        }
         
-        particles.geometry.attributes.position.needsUpdate = true;
-        particles.geometry.attributes.color.needsUpdate = true;
-        particles.geometry.attributes.size.needsUpdate = true;
-        particles.rotation.y += 0.005;
+        if(currentTech === 'dismantle' && Math.random() > 0.7) spawnSlash();
+        if(currentTech === 'neutral') {
+            points.rotation.y += 0.01;
+            for(let i=0; i<COUNT; i++) {
+                tarPos[i*3] = Math.cos(time + i) * 20;
+                tarPos[i*3+1] = Math.sin(time + i*0.5) * 20;
+                tarPos[i*3+2] = Math.sin(time) * 10;
+                tarCol[i*3] = 0; tarCol[i*3+1] = 0.5; tarCol[i*3+2] = 1;
+            }
+        }
+
+        points.geometry.attributes.position.needsUpdate = true;
+        points.geometry.attributes.color.needsUpdate = true;
         composer.render();
     }
     animate();
