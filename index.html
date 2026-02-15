@@ -2,20 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JJK: MAXIMUM OUTPUT</title>
+    <title>JJK: THE HONORED ONE</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; }
-        #ui { position: absolute; top: 8%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
-        h1 { font-size: 3.5rem; margin: 0; letter-spacing: 15px; font-weight: 900; text-shadow: 0 0 30px rgba(255, 255, 255, 0.2); background: linear-gradient(to bottom, #fff, #444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #technique-name { font-size: 1.5rem; color: #00ffff; margin-top: 10px; font-weight: bold; letter-spacing: 5px; text-transform: uppercase; transition: all 0.3s; }
-        #video-container { position: absolute; bottom: 20px; left: 20px; transform: scaleX(-1); width: 350px; height: 260px; border: 3px solid #444; border-radius: 20px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1); }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        #ui { position: absolute; top: 5%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
+        h1 { font-size: 3.5rem; margin: 0; letter-spacing: 15px; font-weight: 900; background: linear-gradient(to bottom, #fff, #444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #technique-name { font-size: 1.8rem; color: #ff0000; margin-top: 10px; font-weight: bold; letter-spacing: 8px; text-transform: uppercase; text-shadow: 0 0 20px rgba(255, 0, 0, 0.6); }
+        
+        #video-container { position: absolute; bottom: 30px; left: 30px; transform: scaleX(-1); width: 320px; height: 240px; border: 2px solid #555; border-radius: 15px; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
         #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        /* Dismantle CSS */
+
+        /* MULTI-DIRECTIONAL DISMANTLE */
         #slash-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 15; }
-        .slash-line { position: absolute; height: 4px; background: linear-gradient(90deg, transparent, #fff 50%, transparent); box-shadow: 0 0 20px #f00; animation: slash-cut 0.4s ease-out forwards; }
-        @keyframes slash-cut { 0% { transform: scaleX(0); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
-        .screen-crack { position: fixed; height: 1px; background: rgba(255,0,0,0.5); pointer-events: none; z-index: 16; }
+        .slash { 
+            position: absolute; 
+            height: 4px; 
+            background: linear-gradient(90deg, transparent, #fff 20%, #ff0000 50%, #fff 80%, transparent); 
+            box-shadow: 0 0 25px #f00, 0 0 5px #fff;
+            filter: blur(1px);
+            animation: slash-anim 0.3s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+        }
+        @keyframes slash-anim {
+            0% { transform: translate(-50%, -50%) scaleX(0) rotate(var(--r)); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scaleX(1.5) rotate(var(--r)); opacity: 0; }
+        }
     </style>
     <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } } </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -35,7 +46,7 @@
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    camera.position.z = 80;
+    camera.position.z = 100;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -43,10 +54,9 @@
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.0, 0.4, 0.85);
-    composer.addPass(bloom);
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.4, 0.85));
 
-    const COUNT = 30000;
+    const COUNT = 35000;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(COUNT * 3), col = new Float32Array(COUNT * 3), siz = new Float32Array(COUNT);
     const tarPos = new Float32Array(COUNT * 3), tarCol = new Float32Array(COUNT * 3), tarSiz = new Float32Array(COUNT);
@@ -55,82 +65,64 @@
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
     geo.setAttribute('size', new THREE.BufferAttribute(siz, 1));
 
-    const mat = new THREE.PointsMaterial({ size: 0.5, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true });
-    const points = new THREE.Points(geo, mat);
+    const points = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.6, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true }));
     scene.add(points);
 
-    // --- HEAVY GEOMETRY LOGIC ---
-    function setPurple() {
+    // --- STATES ---
+    function resetParticles(r,g,b, size=0.4) {
         for(let i=0; i<COUNT; i++) {
-            const r = 25; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
-            tarPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-            tarPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-            tarPos[i*3+2] = r * Math.cos(phi);
-            tarCol[i*3] = 0.7; tarCol[i*3+1] = 0; tarCol[i*3+2] = 1.0;
-            tarSiz[i] = 1.5;
+            tarCol[i*3]=r; tarCol[i*3+1]=g; tarCol[i*3+2]=b;
+            tarSiz[i]=size;
         }
     }
 
-    function setVoid() {
-        for(let i=0; i<COUNT; i++) {
-            const r = 35 + Math.random() * 50; const t = Math.random() * 6.28;
-            tarPos[i*3] = r * Math.cos(t); tarPos[i*3+1] = r * Math.sin(t); tarPos[i*3+2] = (Math.random()-0.5)*100;
-            tarCol[i*3] = 1; tarCol[i*3+1] = 1; tarCol[i*3+2] = 1;
-            tarSiz[i] = 0.5;
+    function spawnMultiSlash() {
+        const container = document.getElementById('slash-container');
+        for(let i=0; i<3; i++) {
+            const s = document.createElement('div');
+            s.className = 'slash';
+            s.style.left = '50%'; s.style.top = '50%';
+            s.style.width = (60 + Math.random()*40) + 'vw';
+            s.style.setProperty('--r', Math.random()*360 + 'deg');
+            container.appendChild(s);
+            setTimeout(() => s.remove(), 300);
         }
-    }
-
-    function setMahoraga() {
-        for(let i=0; i<COUNT; i++) {
-            if(i < COUNT*0.2) { // Wheel
-                const a = (i*0.1); tarPos[i*3] = 15*Math.cos(a); tarPos[i*3+1] = 45+Math.sin(a*8)*2; tarPos[i*3+2] = 15*Math.sin(a);
-                tarCol[i*3] = 1; tarCol[i*3+1] = 0.8; tarCol[i*3+2] = 0;
-            } else { // Body
-                tarPos[i*3] = (Math.random()-0.5)*30; tarPos[i*3+1] = (Math.random()*80)-40; tarPos[i*3+2] = (Math.random()-0.5)*20;
-                tarCol[i*3] = 0.9; tarCol[i*3+1] = 0.9; tarCol[i*3+2] = 0.8;
-            }
-        }
-    }
-
-    function spawnSlash() {
-        const s = document.createElement('div'); s.className = 'slash-line';
-        s.style.top = Math.random()*100+'%'; s.style.left = '10%'; s.style.width = '80%';
-        s.style.transform = `rotate(${Math.random()*360}deg)`;
-        document.getElementById('slash-container').appendChild(s);
-        setTimeout(()=>s.remove(), 400);
+        document.body.style.transform = `translate(${(Math.random()-0.5)*20}px, ${(Math.random()-0.5)*20}px)`;
     }
 
     // --- TRACKING ---
     const video = document.querySelector('.input_video');
     const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.8 });
+    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
 
     let currentTech = 'neutral';
     hands.onResults((res) => {
-        let tech = 'neutral';
+        let detected = 'neutral';
         if(res.multiHandLandmarks.length > 0) {
             const h = res.multiHandLandmarks[0];
-            const finger = (id) => h[id].y < h[id-2].y;
-            const dist = (a, b) => Math.hypot(h[a].x - h[b].x, h[a].y - h[b].y);
-            
-            if(res.multiHandLandmarks.length === 2) tech = 'mahoraga';
+            const finger = (tip, pip) => h[tip].y < h[pip].y;
+            const d = (a, b) => Math.hypot(h[a].x - h[b].x, h[a].y - h[b].y);
+
+            if(res.multiHandLandmarks.length === 2) detected = 'mahoraga';
             else {
-                const isPinch = dist(8, 4) < 0.04;
-                const isCrossed = dist(8, 12) < 0.02 && finger(8) && finger(12);
-                if(isPinch) tech = 'purple';
-                else if(isCrossed) tech = 'void';
-                else if(finger(8) && finger(12) && !finger(16)) tech = 'dismantle';
-                else if(finger(8) && !finger(12)) tech = 'red';
-                else if(finger(8) && finger(12) && finger(16) && finger(20)) tech = 'shrine';
+                const index = finger(8, 6), mid = finger(12, 10), ring = finger(16, 14), pinky = finger(20, 18);
+                const pinch = d(4, 8) < 0.05;
+                const crossed = d(8, 12) < 0.025 && index && mid;
+
+                if(pinch) detected = 'purple';
+                else if(crossed) detected = 'void';
+                else if(index && mid && ring && pinky) detected = 'shrine';
+                else if(index && mid && !ring) detected = 'dismantle';
+                else if(index && !mid) detected = 'red';
             }
         }
-        if(tech !== currentTech) {
-            currentTech = tech;
-            document.getElementById('technique-name').innerText = tech;
-            if(tech === 'purple') setPurple();
-            if(tech === 'void') setVoid();
-            if(tech === 'mahoraga') setMahoraga();
-            if(tech === 'dismantle') { for(let i=0; i<COUNT*3; i++) { tarPos[i]=0; tarCol[i]=1; } }
+        if(detected !== currentTech) {
+            currentTech = detected;
+            document.getElementById('technique-name').innerText = detected === 'neutral' ? "Cursed Energy" : detected;
+            if(detected === 'void') { resetParticles(0.5, 0.8, 1, 0.3); }
+            if(detected === 'shrine') { resetParticles(1, 0, 0, 0.8); }
+            if(detected === 'purple') { resetParticles(0.6, 0, 1, 1.5); }
+            if(detected === 'mahoraga') { resetParticles(1, 0.9, 0, 1.2); }
         }
     });
 
@@ -138,28 +130,46 @@
 
     function animate() {
         requestAnimationFrame(animate);
-        const time = Date.now() * 0.001;
         const pArr = points.geometry.attributes.position.array;
         const cArr = points.geometry.attributes.color.array;
+        const sArr = points.geometry.attributes.size.array;
+        const t = Date.now() * 0.002;
 
-        for(let i=0; i<COUNT*3; i++) {
-            pArr[i] += (tarPos[i] - pArr[i]) * 0.12;
-            cArr[i] += (tarCol[i] - cArr[i]) * 0.12;
-        }
-        
-        if(currentTech === 'dismantle' && Math.random() > 0.7) spawnSlash();
-        if(currentTech === 'neutral') {
-            points.rotation.y += 0.01;
-            for(let i=0; i<COUNT; i++) {
-                tarPos[i*3] = Math.cos(time + i) * 20;
-                tarPos[i*3+1] = Math.sin(time + i*0.5) * 20;
-                tarPos[i*3+2] = Math.sin(time) * 10;
-                tarCol[i*3] = 0; tarCol[i*3+1] = 0.5; tarCol[i*3+2] = 1;
+        for(let i=0; i<COUNT; i++) {
+            let tx=0, ty=0, tz=0;
+            if(currentTech === 'void') {
+                const r = 40 + Math.sin(t+i)*10;
+                tx = r * Math.cos(i); ty = r * Math.sin(i); tz = Math.tan(t+i)*10;
+            } else if(currentTech === 'shrine') {
+                tx = (Math.random()-0.5)*120; ty = -40; tz = (Math.random()-0.5)*120;
+            } else if(currentTech === 'purple') {
+                const r = 20;
+                tx = r * Math.sin(i*0.1) * Math.cos(i); ty = r * Math.sin(i*0.1) * Math.sin(i); tz = r * Math.cos(i*0.1);
+            } else if(currentTech === 'dismantle') {
+                tx = (Math.random()-0.5)*10; ty = (Math.random()-0.5)*10; tz = (Math.random()-0.5)*10;
+                if(Math.random() > 0.9) spawnMultiSlash();
+            } else if(currentTech === 'mahoraga') {
+                const a = (i*0.2) + t;
+                if(i < COUNT*0.3) { tx = 20*Math.cos(a); ty = 50; tz = 20*Math.sin(a); }
+                else { tx = (Math.random()-0.5)*40; ty = (Math.random()-0.5)*60; tz = (Math.random()-0.5)*20; }
+            } else {
+                tx = Math.sin(t + i)*30; ty = Math.cos(t + i*0.5)*30; tz = Math.sin(t*0.5)*20;
+                tarCol[i*3]=0; tarCol[i*3+1]=0.4; tarCol[i*3+2]=0.8; tarSiz[i]=0.3;
             }
+            
+            pArr[i*3] += (tx - pArr[i*3]) * 0.1;
+            pArr[i*3+1] += (ty - pArr[i*3+1]) * 0.1;
+            pArr[i*3+2] += (tz - pArr[i*3+2]) * 0.1;
+            cArr[i*3] += (tarCol[i*3] - cArr[i*3]) * 0.1;
+            cArr[i*3+1] += (tarCol[i*3+1] - cArr[i*3+1]) * 0.1;
+            cArr[i*3+2] += (tarCol[i*3+2] - cArr[i*3+2]) * 0.1;
+            sArr[i] += (tarSiz[i] - sArr[i]) * 0.1;
         }
 
         points.geometry.attributes.position.needsUpdate = true;
         points.geometry.attributes.color.needsUpdate = true;
+        points.geometry.attributes.size.needsUpdate = true;
+        if(currentTech !== 'dismantle') document.body.style.transform = 'none';
         composer.render();
     }
     animate();
